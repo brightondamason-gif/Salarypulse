@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SalaryPulse - Niche Industry Compensation Database</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --accent: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            line-height: 1.5;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 24px;
+            padding-top: 12px;
+        }
+
+        header h1 {
+            font-size: 1.75rem;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h2 {
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+            color: var(--accent);
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            background-color: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.95rem;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .salary-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .salary-item {
+            background-color: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .role-info h3 {
+            font-size: 1rem;
+            color: var(--text);
+        }
+
+        .role-info p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .salary-badge {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--accent);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>SalaryPulse</h1>
+            <p>Verified Niche Compensation & Rate Benchmarks</p>
+        </header>
+
+        <!-- Submit Data Card -->
+        <div class="card">
+            <h2>Contribute Salary Data</h2>
+            <form id="salaryForm">
+                <div class="form-group">
+                    <label for="role">Job Title / Niche Role</label>
+                    <input type="text" id="role" placeholder="e.g. Remote Medical Tech Lead" required>
+                </div>
+                <div class="form-group">
+                    <label for="region">Region / Country</label>
+                    <input type="text" id="region" placeholder="e.g. East Africa / Remote" required>
+                </div>
+                <div class="form-group">
+                    <label for="salary">Annual Compensation (USD)</label>
+                    <input type="number" id="salary" placeholder="e.g. 45000" required>
+                </div>
+                <button type="submit">Submit Benchmark</button>
+            </form>
+        </div>
+
+        <!-- Live Feed Card -->
+        <div class="card">
+            <h2>Market Benchmarks</h2>
+            <div id="salaryList" class="salary-list">
+                <!-- Dynamically populated items will go here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load existing records or default benchmarks from localStorage
+        let benchmarks = JSON.parse(localStorage.getItem('salary_benchmarks')) || [
+            { role: "Remote AI Data Annotator", region: "Global Remote", salary: 28000 },
+            { role: "Specialized Solar Technician", region: "East Africa", salary: 34000 }
+        ];
+
+        const form = document.getElementById('salaryForm');
+        const salaryList = document.getElementById('salaryList');
+
+        function renderBenchmarks() {
+            if (benchmarks.length === 0) {
+                salaryList.innerHTML = `<div class="empty-state">No salary benchmarks recorded yet. Be the first to add one!</div>`;
+                return;
+            }
+
+            salaryList.innerHTML = '';
+            benchmarks.forEach((item) => {
+                const div = document.createElement('div');
+                div.className = 'salary-item';
+                div.innerHTML = `
+                    <div class="role-info">
+                        <h3>${escapeHtml(item.role)}</h3>
+                        <p>${escapeHtml(item.region)}</p>
+                    </div>
+                    <div class="salary-badge">$${Number(item.salary).toLocaleString()}</div>
+                `;
+                salaryList.appendChild(div);
+            });
+        }
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const role = document.getElementById('role').value.trim();
+            const region = document.getElementById('region').value.trim();
+            const salary = document.getElementById('salary').value.trim();
+
+            if (role && region && salary) {
+                benchmarks.unshift({ role, region, salary: Number(salary) });
+                localStorage.setItem('salary_benchmarks', JSON.stringify(benchmarks));
+                renderBenchmarks();
+                form.reset();
+            }
+        });
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}[tag] || tag)
+            );
+        }
+
+        // Initial render
+        renderBenchmarks();
+    </script>
+</body>
+</html>
